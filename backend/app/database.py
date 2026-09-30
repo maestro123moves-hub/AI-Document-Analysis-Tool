@@ -27,11 +27,9 @@ class Base(DeclarativeBase):
 
 # Import models here so Base.metadata is populated for Alembic autogenerate
 from app.models.user import User  # noqa: F401, E402
+from app.models.document import Document  # noqa: F401, E402
 
 
 async def get_db():
     async with async_session_factory() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+        yield session
