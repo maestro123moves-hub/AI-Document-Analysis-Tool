@@ -13,3 +13,5 @@ PyMuPDF
 python-docx
 pytesseract
 Pillow
+google-generativeai
+pgvector

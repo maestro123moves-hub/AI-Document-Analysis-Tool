@@ -96,6 +96,18 @@ export default function Dashboard() {
     }
   };
 
+  /**
+   * Called when AI processing completes (success or failure) on a card.
+   * Replaces the document in the list with fresh data so the card updates in place.
+   */
+  const handleDocumentProcessed = useCallback((docId, freshDoc) => {
+    if (freshDoc && freshDoc.id) {
+      setDocuments((prev) =>
+        prev.map((d) => (d.id === docId ? { ...d, ...freshDoc } : d))
+      );
+    }
+  }, []);
+
   return (
     <div className="min-h-screen bg-canvas text-text-main flex flex-col">
       {/* Top Navigation Bar */}
@@ -267,6 +279,7 @@ export default function Dashboard() {
                     key={doc.id}
                     doc={doc}
                     onDelete={handleDeleteDocument}
+                    onProcessed={handleDocumentProcessed}
                   />
                 ))}
               </div>

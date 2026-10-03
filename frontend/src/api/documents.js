@@ -56,3 +56,19 @@ export async function deleteDocument(id) {
   const response = await client.delete(`/api/documents/${id}`);
   return response.data;
 }
+
+/**
+ * Trigger AI processing for a document.
+ * The backend takes 8–10 seconds under real conditions, so this call uses a
+ * 30-second timeout to avoid dropping requests that would succeed under
+ * normal network jitter.  The shared client's default timeout is NOT changed.
+ *
+ * @param {string} id - Document UUID
+ * @returns {Promise<object>} ProcessingResult
+ */
+export async function processDocument(id) {
+  const response = await client.post(`/api/documents/${id}/process`, null, {
+    timeout: 30000,
+  });
+  return response.data;
+}

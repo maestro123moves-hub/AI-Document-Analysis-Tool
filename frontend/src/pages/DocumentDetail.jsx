@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -13,9 +13,30 @@ import {
   FileText,
   FileCode,
   Image as ImageIcon,
+  Sparkles,
+  RefreshCw,
+  AlertTriangle,
+  Loader2,
+  Blocks,
 } from "lucide-react";
-import { getDocument, deleteDocument } from "../api/documents";
+import { getDocument, deleteDocument, processDocument } from "../api/documents";
 import { formatBytes, formatRelativeTime, getFileTypeBadge } from "../utils/formatters";
+
+/** Map document_type string → muted badge style */
+function getDocTypeBadgeStyle(docType) {
+  const t = (docType || "").toLowerCase();
+  if (t.includes("report"))
+    return "bg-badge-report-bg text-badge-report-text border-badge-report-border";
+  if (t.includes("legal") || t.includes("contract"))
+    return "bg-badge-legal-bg text-badge-legal-text border-badge-legal-border";
+  if (t.includes("technical") || t.includes("manual"))
+    return "bg-badge-technical-bg text-badge-technical-text border-badge-technical-border";
+  if (t.includes("academic") || t.includes("research"))
+    return "bg-badge-academic-bg text-badge-academic-text border-badge-academic-border";
+  if (t.includes("correspondence") || t.includes("letter") || t.includes("email"))
+    return "bg-badge-correspondence-bg text-badge-correspondence-text border-badge-correspondence-border";
+  return "bg-badge-general-bg text-badge-general-text border-badge-general-border";
+}
 
 export default function DocumentDetail() {
   const { id } = useParams();
@@ -29,8 +50,15 @@ export default function DocumentDetail() {
   const [deleting, setDeleting] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // AI processing state
+  const [processing, setProcessing] = useState(false);
+  const [processError, setProcessError] = useState(null); // null | "failed" | "empty"
+  const [progressText, setProgressText] = useState("Analyzing document…");
+  const isMountedRef = useRef(true);
+  const progressTimerRef = useRef(null);
+
   useEffect(() => {
-    let isMounted = true;
+    isMountedRef.current = true;
 
     async function loadDoc() {
       setLoading(true);
@@ -39,11 +67,11 @@ export default function DocumentDetail() {
 
       try {
         const data = await getDocument(id);
-        if (isMounted) {
+        if (isMountedRef.current) {
           setDocument(data);
         }
       } catch (err) {
-        if (isMounted) {
+        if (isMountedRef.current) {
           if (err.response?.status === 404) {
             setNotFound(true);
           } else {
@@ -51,7 +79,7 @@ export default function DocumentDetail() {
           }
         }
       } finally {
-        if (isMounted) {
+        if (isMountedRef.current) {
           setLoading(false);
         }
       }
@@ -62,7 +90,10 @@ export default function DocumentDetail() {
     }
 
     return () => {
-      isMounted = false;
+      isMountedRef.current = false;
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+      }
     };
   }, [id]);
 
@@ -85,6 +116,66 @@ export default function DocumentDetail() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const handleProcess = useCallback(async () => {
+    if (processing) return;
+    setProcessing(true);
+    setProcessError(null);
+    setProgressText("Analyzing document…");
+
+    // Switch text after ~4.5 seconds for the realistic 8-10s wait
+    progressTimerRef.current = setTimeout(() => {
+      if (isMountedRef.current) {
+        setProgressText("Almost done…");
+      }
+    }, 4500);
+
+    try {
+      const result = await processDocument(id);
+      if (isMountedRef.current) {
+        // Fetch fresh document data
+        try {
+          const freshDoc = await getDocument(id);
+          if (isMountedRef.current) {
+            // Merge confidence & chunk_count from process result (GET doesn't return these)
+            setDocument({
+              ...freshDoc,
+              confidence: result.confidence,
+              chunk_count: result.chunk_count,
+            });
+          }
+        } catch {
+          // At least mark as completed so user sees something changed
+        }
+      }
+    } catch (err) {
+      if (isMountedRef.current) {
+        const status = err.response?.status;
+        if (status === 422) {
+          setProcessError("empty");
+        } else {
+          setProcessError("failed");
+        }
+        // Re-fetch to get the real processing_status from DB
+        try {
+          const freshDoc = await getDocument(id);
+          if (isMountedRef.current) {
+            setDocument(freshDoc);
+          }
+        } catch {
+          // silently fail
+        }
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setProcessing(false);
+      }
+      if (progressTimerRef.current) {
+        clearTimeout(progressTimerRef.current);
+        progressTimerRef.current = null;
+      }
+    }
+  }, [id, processing]);
 
   // 1. Loading State
   if (loading) {
@@ -159,6 +250,8 @@ export default function DocumentDetail() {
 
   const badge = getFileTypeBadge(document.file_type);
   const fileName = document.original_filename || document.filename;
+  const status = document.processing_status || "pending";
+  const isCompleted = status === "completed" && !processing;
 
   return (
     <div className="min-h-screen bg-canvas text-text-main flex flex-col">
@@ -295,6 +388,210 @@ export default function DocumentDetail() {
             </div>
           </div>
         </section>
+
+        {/* AI Processing Section */}
+        {/* Pending — show Process button */}
+        {status === "pending" && !processing && processError === null && (
+          <section className="bg-surface border border-primary-border/50 rounded-2xl p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-light border border-primary-border flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-text-main">AI Analysis Available</h2>
+                  <p className="text-xs text-text-tertiary">
+                    Classify, summarize, and index this document with AI
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="process-detail-btn"
+                onClick={handleProcess}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary hover:bg-primary-hover transition-colors cursor-pointer shadow-xs"
+              >
+                <Sparkles className="w-4 h-4" />
+                Process this document
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* Processing — calm loading state with changing text */}
+        {processing && (
+          <section className="bg-surface border border-primary-border/50 rounded-2xl p-6 shadow-xs">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-light border border-primary-border flex items-center justify-center">
+                  <Loader2 className="w-5 h-5 text-primary animate-spin" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-text-main">{progressText}</h2>
+                  <p className="text-xs text-text-tertiary">
+                    Our AI is reading and understanding your document
+                  </p>
+                </div>
+              </div>
+              {/* Progress bar */}
+              <div className="w-full h-1.5 bg-surface-subtle rounded-full overflow-hidden">
+                <div className="h-full bg-primary/60 rounded-full ai-progress-bar" />
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Failed (502 — Gemini/processing failure) */}
+        {!processing && processError === "failed" && (
+          <section className="bg-surface border border-danger-border rounded-2xl p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-danger-light border border-danger-border flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-danger" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-text-main">AI processing failed</h2>
+                  <p className="text-xs text-text-tertiary">
+                    Something went wrong during analysis — you can try again
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="retry-detail-btn"
+                onClick={handleProcess}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-danger border border-danger-border bg-danger-light hover:bg-danger/10 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* DB-level failed status (e.g. on page load after a past failure) */}
+        {!processing && processError === null && status === "failed" && (
+          <section className="bg-surface border border-danger-border rounded-2xl p-6 shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-danger-light border border-danger-border flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-danger" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-text-main">AI processing failed</h2>
+                  <p className="text-xs text-text-tertiary">
+                    Something went wrong during analysis — you can try again
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                id="retry-detail-btn-status"
+                onClick={handleProcess}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold text-danger border border-danger-border bg-danger-light hover:bg-danger/10 transition-colors cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Retry
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* 422 — empty/no extractable text */}
+        {!processing && processError === "empty" && (
+          <section className="bg-surface border border-border rounded-2xl p-6 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-surface-subtle border border-border flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-text-subtle" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-text-main">
+                  Not enough readable text
+                </h2>
+                <p className="text-xs text-text-tertiary">
+                  This document doesn't contain enough readable text to analyze
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* "processing" status loaded from DB on mount — show passive processing state */}
+        {!processing && processError === null && status === "processing" && (
+          <section className="bg-surface border border-primary-border/50 rounded-2xl p-6 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-primary-light border border-primary-border flex items-center justify-center">
+                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-text-main">Processing in progress…</h2>
+                <p className="text-xs text-text-tertiary">
+                  This document is being analyzed. Refresh the page to check for updates.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Completed — AI Summary Section */}
+        {isCompleted && processError === null && (
+          <section className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between bg-primary-light/30">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-text-main">
+                  AI Summary
+                </h2>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {/* Document type badge */}
+                {document.document_type && (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${getDocTypeBadgeStyle(document.document_type)}`}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    {document.document_type}
+                  </span>
+                )}
+                {/* Confidence */}
+                {document.confidence != null && (
+                  <span className="text-xs text-text-subtle font-medium">
+                    {Math.round(document.confidence * 100)}%
+                  </span>
+                )}
+                {/* Re-process icon */}
+                <button
+                  type="button"
+                  onClick={handleProcess}
+                  disabled={processing}
+                  title="Re-process document"
+                  className="p-1.5 rounded-lg text-text-subtle hover:text-primary hover:bg-primary-light transition-colors cursor-pointer disabled:opacity-50"
+                  id="reprocess-detail-btn"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Summary prose */}
+              {document.summary && (
+                <p className="text-sm leading-relaxed text-text-secondary" style={{ fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                  {document.summary}
+                </p>
+              )}
+
+              {/* Chunk count caption */}
+              {document.chunk_count != null && (
+                <div className="flex items-center gap-1.5 text-xs text-text-subtle pt-2 border-t border-border/50">
+                  <Blocks className="w-3.5 h-3.5" />
+                  <span>Indexed in {document.chunk_count} {document.chunk_count === 1 ? "segment" : "segments"}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Extracted Raw Text Section */}
         <section className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">
