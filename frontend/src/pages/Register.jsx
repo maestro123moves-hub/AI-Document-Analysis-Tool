@@ -42,24 +42,18 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col items-center justify-center p-6 selection:bg-indigo-500 selection:text-white">
-      {/* Background glow */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/3 w-80 h-80 bg-purple-600/15 rounded-full blur-3xl" />
-      </div>
-
-      <main className="relative z-10 max-w-md w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 shadow-2xl rounded-2xl p-8 space-y-6">
+    <div className="min-h-screen bg-canvas text-text-main flex flex-col items-center justify-center p-6">
+      <main className="relative z-10 max-w-md w-full bg-surface border border-border shadow-sm hover:shadow-md transition-shadow rounded-2xl p-8 space-y-6">
         {/* Header */}
-        <div className="flex items-center space-x-3 pb-2">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-500/30">
+        <div className="flex items-center space-x-3 pb-2 border-b border-border">
+          <div className="w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
             D
           </div>
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+            <h1 className="text-xl font-semibold text-text-main">
               Create Account
             </h1>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-text-tertiary">
               Get started with DocuMind AI
             </p>
           </div>
@@ -69,7 +63,7 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name */}
           <div className="space-y-1.5">
-            <label htmlFor="register-name" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="register-name" className="block text-sm font-medium text-text-secondary">
               Full Name
             </label>
             <input
@@ -80,13 +74,13 @@ export default function Register() {
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Jane Doe"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-text-main placeholder-text-subtle text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
             />
           </div>
 
           {/* Email */}
           <div className="space-y-1.5">
-            <label htmlFor="register-email" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="register-email" className="block text-sm font-medium text-text-secondary">
               Email
             </label>
             <input
@@ -97,13 +91,13 @@ export default function Register() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-text-main placeholder-text-subtle text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
             />
           </div>
 
           {/* Password */}
           <div className="space-y-1.5">
-            <label htmlFor="register-password" className="block text-sm font-medium text-slate-300">
+            <label htmlFor="register-password" className="block text-sm font-medium text-text-secondary">
               Password
             </label>
             <input
@@ -114,13 +108,13 @@ export default function Register() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-2.5 rounded-xl bg-slate-950/60 border border-slate-700 text-slate-100 placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500 transition-all duration-200"
+              className="w-full px-4 py-2.5 rounded-xl bg-surface border border-border text-text-main placeholder-text-subtle text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
             />
           </div>
 
           {/* Error message */}
           {error && (
-            <p id="register-error" className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
+            <p id="register-error" className="text-danger text-sm bg-danger-light border border-danger-border rounded-lg px-3 py-2">
               {error}
             </p>
           )}
@@ -130,7 +124,7 @@ export default function Register() {
             id="register-submit"
             type="submit"
             disabled={submitting}
-            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-2.5 rounded-xl bg-primary text-white font-medium text-sm shadow-sm hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
           >
             {submitting ? (
               <>
@@ -144,18 +138,18 @@ export default function Register() {
         </form>
 
         {/* Footer */}
-        <p className="text-center text-sm text-slate-400">
+        <p className="text-center text-sm text-text-tertiary">
           Already have an account?{" "}
           <Link
             to="/login"
-            className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors duration-200"
+            className="text-primary hover:text-primary-hover font-medium transition-colors duration-200"
           >
             Sign in
           </Link>
         </p>
       </main>
 
-      <footer className="relative z-10 mt-8 text-xs text-slate-500">
+      <footer className="relative z-10 mt-8 text-xs text-text-subtle">
         DocuMind AI &copy; 2026
       </footer>
     </div>

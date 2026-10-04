@@ -1,0 +1,27 @@
+INVOICE
+
+Invoice Number: INV-2026-0042
+Date: October 2, 2026
+Due Date: November 1, 2026
+
+Billed To:
+Acme Corporation
+123 Innovation Way, Suite 400
+San Francisco, CA 94105
+
+From:
+CloudScale Technologies Inc.
+789 Market Street, Floor 12
+San Francisco, CA 94103
+
+Line Items:
+1. Enterprise Cloud Infrastructure Management (Monthly retainer - Oct 2026): $12,500.00
+2. Security Audit & Penetration Testing: $8,000.00
+3. Dedicated Architecture Consulting (20 Hours @ $250/hr): $5,000.00
+
+Subtotal: $25,500.00
+Tax (8.5%): $2,167.50
+Total Due: $27,667.50
+
+Payment Terms: Net 30 days via wire transfer or ACH.
+Thank you for your business!

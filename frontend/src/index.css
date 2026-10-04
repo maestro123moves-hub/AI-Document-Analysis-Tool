@@ -1,16 +1,119 @@
 @import "tailwindcss";
 
+@theme {
+  --color-canvas: #fafaf9;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f5f5f4;
+  --color-border: #e7e5e4;
+  --color-border-hover: #d6d3d1;
+  --color-text-main: #1c1917;
+  --color-text-secondary: #57534e;
+  --color-text-tertiary: #78716c;
+  --color-text-subtle: #a8a29e;
+  --color-primary: #0d9488;
+  --color-primary-hover: #0f766e;
+  --color-primary-light: #f0fdfa;
+  --color-primary-border: #99f6e4;
+  --color-danger: #e11d48;
+  --color-danger-hover: #be123c;
+  --color-danger-light: #fff1f2;
+  --color-danger-border: #fecdd3;
+  --color-success: #059669;
+  --color-success-light: #ecfdf5;
+  --color-success-border: #a7f3d0;
+
+  /* Document-type badge colors — muted, desaturated tints */
+  --color-badge-report-bg: #f0f4f1;
+  --color-badge-report-text: #4a6355;
+  --color-badge-report-border: #c8d5cd;
+
+  --color-badge-legal-bg: #eef1f6;
+  --color-badge-legal-text: #4a5672;
+  --color-badge-legal-border: #c8cede;
+
+  --color-badge-technical-bg: #f5f2ec;
+  --color-badge-technical-text: #6b5e45;
+  --color-badge-technical-border: #d9d1c3;
+
+  --color-badge-academic-bg: #f2eff6;
+  --color-badge-academic-text: #5e4e72;
+  --color-badge-academic-border: #d1c8de;
+
+  --color-badge-correspondence-bg: #f4efec;
+  --color-badge-correspondence-text: #6b534a;
+  --color-badge-correspondence-border: #d9cbc3;
+
+  --color-badge-general-bg: #f0f1f2;
+  --color-badge-general-text: #555860;
+  --color-badge-general-border: #cdd0d4;
+}
+
 :root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --canvas: #fafaf9;
+  --surface: #ffffff;
+  --surface-subtle: #f5f5f4;
+  --border: #e7e5e4;
+  --border-hover: #d6d3d1;
+  --text-main: #1c1917;
+  --text-secondary: #57534e;
+  --text-tertiary: #78716c;
+  --text-subtle: #a8a29e;
+  --primary: #0d9488;
+  --primary-hover: #0f766e;
+  --primary-light: #f0fdfa;
+  --primary-border: #99f6e4;
+  --danger: #e11d48;
+  --danger-light: #fff1f2;
+  --danger-border: #fecdd3;
+  --success: #059669;
+  --success-light: #ecfdf5;
+  --success-border: #a7f3d0;
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #0b0f19;
-  color: #f3f4f6;
+  background-color: var(--canvas);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* Common smooth transitions */
+button, a, input {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* AI processing progress bar animation */
+@keyframes ai-progress {
+  0% { width: 0%; }
+  15% { width: 18%; }
+  40% { width: 45%; }
+  60% { width: 62%; }
+  80% { width: 80%; }
+  95% { width: 92%; }
+  100% { width: 100%; }
+}
+
+.ai-progress-bar {
+  animation: ai-progress 12s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Subtle pulse for processing spinner */
+@keyframes gentle-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.gentle-pulse {
+  animation: gentle-pulse 2s ease-in-out infinite;
+}
+
