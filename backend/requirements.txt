@@ -15,3 +15,5 @@ pytesseract
 Pillow
 google-generativeai
 pgvector
+reportlab
+openpyxl

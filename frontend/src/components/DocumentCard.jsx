@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { formatBytes, formatRelativeTime, getFileTypeBadge } from "../utils/formatters";
 import { processDocument, getDocument } from "../api/documents";
+import ExportButtons from "./ExportButtons";
 
 /** Map document_type string → muted badge style */
 function getDocTypeBadgeStyle(docType) {
@@ -161,44 +162,48 @@ export default function DocumentCard({ doc, onDelete, onProcessed }) {
             {badge.label}
           </span>
 
-          {showConfirmDelete ? (
-            <div
-              className="flex items-center gap-1.5 bg-danger-light p-1 rounded-lg border border-danger-border animate-in fade-in"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <span className="text-[11px] font-medium text-danger px-1">
-                Delete?
-              </span>
+          <div className="flex items-center gap-1">
+            <ExportButtons documentId={doc.id} variant="compact" />
+
+            {showConfirmDelete ? (
+              <div
+                className="flex items-center gap-1.5 bg-danger-light p-1 rounded-lg border border-danger-border animate-in fade-in"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="text-[11px] font-medium text-danger px-1">
+                  Delete?
+                </span>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleConfirmDelete}
+                  className="px-2 py-0.5 text-xs font-medium bg-danger text-white rounded hover:bg-danger-hover transition-colors disabled:opacity-50 cursor-pointer"
+                  id={`confirm-delete-${doc.id}`}
+                >
+                  {deleting ? "…" : "Yes"}
+                </button>
+                <button
+                  type="button"
+                  disabled={deleting}
+                  onClick={handleCancelDelete}
+                  className="px-2 py-0.5 text-xs font-medium bg-surface text-text-secondary border border-border rounded hover:bg-surface-subtle transition-colors cursor-pointer"
+                  id={`cancel-delete-${doc.id}`}
+                >
+                  No
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                disabled={deleting}
-                onClick={handleConfirmDelete}
-                className="px-2 py-0.5 text-xs font-medium bg-danger text-white rounded hover:bg-danger-hover transition-colors disabled:opacity-50 cursor-pointer"
-                id={`confirm-delete-${doc.id}`}
+                onClick={handleDeleteClick}
+                title="Delete document"
+                className="text-text-subtle hover:text-danger hover:bg-danger-light p-1.5 rounded-lg transition-colors cursor-pointer"
+                id={`delete-btn-${doc.id}`}
               >
-                {deleting ? "…" : "Yes"}
+                <Trash2 className="w-4 h-4" />
               </button>
-              <button
-                type="button"
-                disabled={deleting}
-                onClick={handleCancelDelete}
-                className="px-2 py-0.5 text-xs font-medium bg-surface text-text-secondary border border-border rounded hover:bg-surface-subtle transition-colors cursor-pointer"
-                id={`cancel-delete-${doc.id}`}
-              >
-                No
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={handleDeleteClick}
-              title="Delete document"
-              className="text-text-subtle hover:text-danger hover:bg-danger-light p-1.5 rounded-lg transition-colors cursor-pointer"
-              id={`delete-btn-${doc.id}`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Title */}
