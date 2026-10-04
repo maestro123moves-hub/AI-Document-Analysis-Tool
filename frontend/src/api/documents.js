@@ -72,3 +72,43 @@ export async function processDocument(id) {
   });
   return response.data;
 }
+
+/**
+ * Ask a question about a single document using RAG.
+ * @param {string} documentId - Document UUID
+ * @param {string} question - Question text
+ * @param {number} [topK=5] - Number of chunks to retrieve
+ * @returns {Promise<object>} AskResponse { answer, source_chunks, processing_time_ms }
+ */
+export async function askDocument(documentId, question, topK = 5) {
+  const response = await client.post(
+    `/api/documents/${documentId}/ask`,
+    {
+      question,
+      top_k: topK,
+    },
+    { timeout: 15000 }
+  );
+  return response.data;
+}
+
+/**
+ * Ask a question across all (or a subset of) documents using RAG.
+ * documentIds arrives as null (not []) when unscoped, and is passed as-is.
+ * @param {string} question - Question text
+ * @param {number} [topK=5] - Number of chunks to retrieve
+ * @param {Array<string>|null} [documentIds=null] - Document IDs or null
+ * @returns {Promise<object>} GlobalAskResponse { answer, source_chunks, processing_time_ms }
+ */
+export async function askGlobal(question, topK = 5, documentIds = null) {
+  const response = await client.post(
+    "/api/documents/ask",
+    {
+      question,
+      top_k: topK,
+      document_ids: documentIds,
+    },
+    { timeout: 15000 }
+  );
+  return response.data;
+}

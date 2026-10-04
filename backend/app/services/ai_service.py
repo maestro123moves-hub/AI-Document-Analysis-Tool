@@ -107,3 +107,55 @@ def embed_chunk(text: str) -> list[float]:
         output_dimensionality=768,
     )
     return result["embedding"]
+
+
+def embed_query(text: str) -> list[float]:
+    """Generate an embedding vector for a search query.
+
+    Uses the same embedding model as embed_chunk but with RETRIEVAL_QUERY
+    task type — this asymmetry (RETRIEVAL_DOCUMENT for stored chunks,
+    RETRIEVAL_QUERY for search queries) measurably improves retrieval quality
+    even though both produce identical 768-dim vectors.
+    """
+    result = genai.embed_content(
+        model="models/gemini-embedding-001",
+        content=text,
+        task_type="RETRIEVAL_QUERY",
+        output_dimensionality=768,
+    )
+    return result["embedding"]
+
+
+def generate_answer(question: str, context_chunks: str) -> str:
+    """Generate an answer grounded in the provided context chunks.
+
+    Makes a single Gemini call with a system prompt that constrains the model
+    to answer using ONLY the provided context. Returns raw answer text.
+
+    On any Gemini API failure, the exception propagates up — the calling
+    router is responsible for converting it to a 502.
+    """
+    system_prompt = (
+        "You are a document analysis assistant. Answer the question using "
+        "ONLY the provided context below. If the answer cannot be found in "
+        "the context, say so clearly and do not guess or make up information."
+    )
+
+    user_prompt = (
+        f"CONTEXT:\n{context_chunks}\n\n"
+        f"QUESTION:\n{question}"
+    )
+
+    # Try model candidates in the same order as classify_and_summarize
+    for model_name in ("gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"):
+        try:
+            model = genai.GenerativeModel(
+                model_name,
+                system_instruction=system_prompt,
+            )
+            response = model.generate_content(user_prompt)
+            return response.text
+        except Exception as model_err:
+            logger.warning(f"Model {model_name} failed for Q&A: {model_err}, trying next candidate")
+
+    raise RuntimeError("All Gemini model candidates failed for answer generation")

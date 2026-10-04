@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { getDocument, deleteDocument, processDocument } from "../api/documents";
 import { formatBytes, formatRelativeTime, getFileTypeBadge } from "../utils/formatters";
+import DocumentChat from "../components/DocumentChat";
 
 /** Map document_type string → muted badge style */
 function getDocTypeBadgeStyle(docType) {
@@ -592,6 +593,12 @@ export default function DocumentDetail() {
             </div>
           </section>
         )}
+ 
+        {/* Document Q&A Section */}
+        <DocumentChat
+          processingStatus={document.processing_status}
+          documentId={document.id}
+        />
 
         {/* Extracted Raw Text Section */}
         <section className="bg-surface border border-border rounded-2xl shadow-xs overflow-hidden">

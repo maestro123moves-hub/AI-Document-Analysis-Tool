@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import UploadZone from "../components/UploadZone";
 import DocumentCard from "../components/DocumentCard";
 import { listDocuments, deleteDocument } from "../api/documents";
-import { LogOut, RefreshCw, FolderOpen, AlertCircle } from "lucide-react";
+import { LogOut, RefreshCw, FolderOpen, AlertCircle, Search as SearchIcon } from "lucide-react";
 
 const PAGE_SIZE = 12;
 
@@ -128,8 +129,20 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* User Profile & Logout */}
-          <div className="flex items-center space-x-4">
+          {/* User Profile, Search Nav & Logout */}
+          <div className="flex items-center space-x-3 sm:space-x-4">
+            <Link
+              to="/search"
+              id="search-nav-link"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-surface text-text-secondary hover:text-text-main hover:bg-surface-subtle text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+              title="Global document search across your library"
+            >
+              <SearchIcon className="w-3.5 h-3.5 text-primary" />
+              <span>Search</span>
+            </Link>
+
+            <div className="h-4 w-px bg-border hidden sm:block" />
+
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-text-main leading-tight">
                 {user?.full_name || "User"}
