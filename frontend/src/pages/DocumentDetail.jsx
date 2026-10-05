@@ -22,6 +22,7 @@ import {
 import { getDocument, deleteDocument, processDocument } from "../api/documents";
 import { formatBytes, formatRelativeTime, getFileTypeBadge } from "../utils/formatters";
 import DocumentChat from "../components/DocumentChat";
+import ExportButtons from "../components/ExportButtons";
 
 /** Map document_type string → muted badge style */
 function getDocTypeBadgeStyle(docType) {
@@ -315,7 +316,7 @@ export default function DocumentDetail() {
         <section className="bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-xs space-y-6">
           {/* Title & Badge */}
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-semibold border ${badge.bgColor}`}
@@ -336,6 +337,11 @@ export default function DocumentDetail() {
               <h1 className="text-xl sm:text-2xl font-bold text-text-main break-all">
                 {fileName}
               </h1>
+            </div>
+
+            {/* Export Controls */}
+            <div className="shrink-0 pt-1">
+              <ExportButtons documentId={document.id} />
             </div>
           </div>
 

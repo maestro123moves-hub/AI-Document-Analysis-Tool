@@ -13,11 +13,13 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Disposition"],
 )
 
 
 from app.routers.auth import router as auth_router
 from app.routers.documents import router as documents_router
+from app.routers.export import router as export_router
 from app.routers.processing import router as processing_router
 from app.routers.qa import router as qa_router
 
@@ -25,6 +27,7 @@ app.include_router(auth_router)
 app.include_router(qa_router)
 app.include_router(documents_router)
 app.include_router(processing_router)
+app.include_router(export_router)
 
 
 @app.get("/health")
